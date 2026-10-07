@@ -1,3 +1,9 @@
 .env
+surveillanceOrages/__pycache__
 surveillanceOrages/orageApp/__pycache__
+surveillanceOrages/orageApp/migrations/__pycache__
 surveillanceOrages/orageApp/test_algo/__pycache__
+surveillanceOrages/surveillanceOrages/__pycache__
+package-lock.json
+package.json
+node_modules

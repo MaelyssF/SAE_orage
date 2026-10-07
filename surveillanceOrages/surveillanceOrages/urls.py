@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from orageApp.views import carteView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('carte/', carteView, name='carte')
 ]
