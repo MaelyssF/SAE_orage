@@ -1,7 +1,28 @@
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
 }
 
 #map {
-    height: 600px;
+    height: 60%;
+    width: 70%;
+}
+
+.page-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar-left {
+    width: 300px;
+    background-color: #f0f0f0;
+}
+
+.sidebar-right {
+    width: 200px;
+    background-color: #f0f0f0;
+}
+
+.map-container {
+    flex: 1;
 }

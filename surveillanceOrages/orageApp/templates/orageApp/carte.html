@@ -3,19 +3,29 @@
 <!DOCTYPE html>
 
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script defer src="{% static 'js/script.js' %}"></script>
-    <title>Carte</title>
-</head>
-<body>
-    <h1>Carte</h1>
-    <p>Contenu de la carte ici.</p>
-    <div id="map"></div>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+        <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script defer src="{% static 'js/script.js' %}"></script>
+        <title>Carte</title>
+    </head>
+    <body>
+        <div class="page-container">
+            <nav class="sidebar-left">
+                <!-- barre de navigation -->
+            </nav>
+
+            <main class="map-container">
+                <div id="map"></div>
+            </main>
+
+            <aside class="sidebar-right">
+                <!-- informations importantes -->
+            </aside>
+        </div>
+    </body>
 </html>
