@@ -9,6 +9,11 @@ pip install django
 django-admin --version
 ```
 
+Installer Leaflet dans le venv :
+```Bash 
+npm install leaflet
+```
+
 _Rappel_ : Pour mettre à jour les traces des packages installés :  
 pip freeze > requirements.txt
 
