@@ -7,3 +7,5 @@ surveillanceOrages/surveillanceOrages/__pycache__
 package-lock.json
 package.json
 node_modules
+surveillanceOrages/orageApp/management/commands/__pycache__
+surveillanceOrages/orageApp/management/__pycache__/
