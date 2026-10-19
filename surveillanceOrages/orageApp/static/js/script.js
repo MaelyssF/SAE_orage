@@ -11,7 +11,7 @@ map.on('click', function (e) {
     L.popup().setLatLng(e.latlng).setContent(`Latitude: ${latitude}, Longitude: ${longitude}`).openOn(map);
 })
 
-
+// Gestion des boutons pour générer et effacer les impacts
 
 document.getElementById('btn-generer').addEventListener('click', function () {
     fetch('/api/generer-impact/')
@@ -24,7 +24,26 @@ document.getElementById('btn-generer').addEventListener('click', function () {
                 fillColor: "#ff3333",
                 fillOpacity: 0.9,
                 weight: 1
-            }).addTo(map).bindPopup(`Impact de foudre simulé. <br>Lat: ${data.latitude}<br>Lon: ${data.longitude}`);
+            }).addTo(map).bindPopup(`Impact de foudre simulé. <br>Lat: ${data.latitude}<br>Lon: ${data.longitude}`).openPopup();
+        }).catch(error => {
+            console.error('Erreur lors de la génération :', error);
+        });
+});
+
+document.getElementById('btn-generer-10').addEventListener('click', function () {
+    fetch('/api/generer-10-impacts/')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Coordonnées reçues : ", data);
+            for (const impact of data.impacts) {
+                L.circleMarker([impact.latitude, impact.longitude], {
+                    radius: 3,
+                    color: "#ff0000",
+                    fillColor: "#ff3333",
+                    fillOpacity: 0.9,
+                    weight: 1
+                }).addTo(map).bindPopup(`Impact de foudre simulé. <br>Lat: ${impact.latitude}<br>Lon: ${impact.longitude}`);
+            }
         }).catch(error => {
             console.error('Erreur lors de la génération :', error);
         });
