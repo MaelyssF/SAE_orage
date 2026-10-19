@@ -15,13 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from orageApp.views import *
+from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('home/', home_view, name='home'),
-    path('carte/', carte_view, name='carte'),
-    path('api/generer-impact/', api_generer_impact, name='api_generer_impact'),
-    path('api/generer-10-impacts/', api_generer_10_impacts, name='api_generer_10_impacts'),
+    path("orageApp/", include("orageApp.urls")),
 ]

@@ -1,0 +1,55 @@
+{% extends "orageApp/base.html" %}
+{% load static %}
+
+{% block title %}Carte en direct - Surveillance des Orages{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+<main class="map-container flex-grow-1 p-2 d-flex flex-column position-relative">
+    <div id="map" class="w-100 h-100 rounded-3 shadow border border-secondary-subtle"></div>
+</main>
+{% endblock %}
+
+{% block sidebar_right %}
+    <div class="pb-3 mb-3 border-bottom border-secondary-subtle">
+        <h6 class="mb-1 fw-bold text-light">Simulateur d'orages</h6>
+        <small class="text-secondary">Génération et contrôle d'impacts</small>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="card bg-body-tertiary border-secondary-subtle mb-3 shadow-sm">
+        <div class="card-body p-3">
+            <h6 class="card-subtitle text-uppercase text-body-secondary small fw-bold mb-3 d-flex align-items-center gap-1">
+                <i class="bi bi-lightning-charge"></i> Actions rapides
+            </h6>
+            <div class="d-grid gap-2">
+                <button id="btn-generer" class="btn btn-success d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-lightning"></i> 1 impact
+                </button>
+                <button id="btn-generer-10" class="btn btn-outline-warning d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-cloud-lightning"></i> 10 impacts
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nettoyage -->
+    <div class="card bg-body-tertiary border-secondary-subtle shadow-sm">
+        <div class="card-body p-3">
+            <h6 class="card-subtitle text-uppercase text-body-secondary small fw-bold mb-3 d-flex align-items-center gap-1">
+                <i class="bi bi-trash3"></i> Nettoyage
+            </h6>
+            <button id="btn-effacer" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-trash"></i> Effacer les impacts
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script defer src="{% static 'js/script.js' %}"></script>
+{% endblock %}

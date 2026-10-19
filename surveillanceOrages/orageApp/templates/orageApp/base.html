@@ -38,6 +38,11 @@
                                 <i class="bi bi-map"></i> Carte
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{% url 'simulateur' %}" class="nav-link d-flex align-items-center gap-2 {% if request.resolver_match.url_name == 'simulateur' %}active{% else %}text-light-emphasis{% endif %}">
+                                <i class="bi bi-gear"></i> Simulateur
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- Pied de page sidebar -->

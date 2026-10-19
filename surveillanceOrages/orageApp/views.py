@@ -11,6 +11,10 @@ def carte_view(request):
     return render(request, "orageApp/carte.html")
 
 
+def simulateur_view(request):
+    return render(request, "orageApp/simulateur.html")
+
+
 def api_generer_impact(request):
     impact = generer_impact_france()
     return JsonResponse(impact)
