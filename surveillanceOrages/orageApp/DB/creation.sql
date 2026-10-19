@@ -77,7 +77,7 @@ CREATE TABLE
         identifiant_externe VARCHAR(50),
         premiere_detection DATETIME NOT NULL,
         derniere_detection DATETIME NOT NULL,
-        statut VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'dissipee'
+        statut VARCHAR(20) NOT NULL DEFAULT 'active', -- 'activee', 'dissipee'
         FOREIGN KEY (episode_id) REFERENCES EPISODE (id_episode) ON DELETE CASCADE
     );
 
