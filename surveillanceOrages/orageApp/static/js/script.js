@@ -22,7 +22,7 @@ if (mapElement) {
     const btnGenerer = document.getElementById('btn-generer');
     if (btnGenerer) {
         btnGenerer.addEventListener('click', function () {
-            fetch('/api/generer-impact/')
+            fetch('/orageApp/api/generer-impact/')
                 .then(response => response.json())
                 .then(data => {
                     L.circleMarker([data.latitude, data.longitude], {
@@ -43,7 +43,7 @@ if (mapElement) {
     const btnGenerer10 = document.getElementById('btn-generer-10');
     if (btnGenerer10) {
         btnGenerer10.addEventListener('click', function () {
-            fetch('/api/generer-10-impacts/')
+            fetch('/orageApp/api/generer-10-impacts/')
                 .then(response => response.json())
                 .then(data => {
                     if (data.impacts && Array.isArray(data.impacts)) {
