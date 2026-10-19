@@ -16,9 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from orageApp.views import carteView
+from orageApp.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('carte/', carteView, name='carte')
+    path('carte/', carteView, name='carte'),
+    path('api/generer-impact/', api_generer_impact, name='api_generer_impact'),
+    path('api/generer-10-impacts/', api_generer_10_impacts, name='api_generer_10_impacts'),
 ]
