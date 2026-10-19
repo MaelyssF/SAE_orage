@@ -58,6 +58,14 @@ def generer_impacts(nb_impacts: int = 10) -> list:
     return [generer_impact_france() for _ in range(nb_impacts)]
 
 
+def generer_impact_precis(latitude: float, longitude: float) -> dict:
+    """Génère un impact exactement aux coordonnées indiquées."""
+    return {
+        "latitude": latitude,
+        "longitude": longitude,
+    }
+
+
 def generer_un_impact(
     lat_ref: float = LATITUDE, lon_ref: float = LONGITUDE, rayon_km: float = 550.0
 ) -> dict:
@@ -75,7 +83,6 @@ def generer_un_impact(
     lon = lon_ref + dx_km / (km_par_degre * cos(radians(lat_ref)))
 
     return {"latitude": round(lat, 4), "longitude": round(lon, 4)}
-
 
 
 def generer_impact_france() -> dict:
