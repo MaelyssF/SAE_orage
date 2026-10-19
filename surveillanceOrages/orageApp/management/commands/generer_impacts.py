@@ -87,7 +87,7 @@ def generer_un_impact(
 
 def generer_impact_france() -> dict:
     """Fonction qui permet de générer un impact aléatoire en France"""
-    lat_france = random.uniform(41.0, 51.0)
+    lat_france = random.uniform(42.0, 51.0)
     lon_france = random.uniform(-5.0, 9.0)
     return {"latitude": round(lat_france, 4), "longitude": round(lon_france, 4)}
 

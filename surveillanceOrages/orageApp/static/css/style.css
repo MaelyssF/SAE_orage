@@ -1,31 +1,84 @@
-body {
-    font-family: Arial, sans-serif;
+[data-bs-theme="dark"] {
+    --bs-body-bg: #0e1117;
+    --bs-body-color: #f0f6fc;
+    --bs-tertiary-bg: #161b22;
+    --bs-dark-subtle: #161b22;
+    --bs-border-color-subtle: #30363d;
+    --bs-primary: #388bfd;
+    --bs-success: #238636;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
     margin: 0;
-    background-color: rgb(19, 19, 19);
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
-#map {
-    height: 60%;
-    width: 70%;
-    border-radius: 10px;
-}
-
-.page-container {
-    display: flex;
-    height: 100vh;
-}
-
+/* ==========================================================================
+   Barres latérales
+   ========================================================================== */
 .sidebar-left {
-    width: 300px;
-    background-color: rgb(0, 0, 0);
+    width: 240px;
+    min-width: 240px;
 }
 
 .sidebar-right {
-    width: 200px;
-    background-color: rgb(0, 0, 0);
+    width: 310px;
+    min-width: 310px;
 }
 
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+.nav-pills .nav-link {
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #f0f6fc !important;
+}
+
+.nav-pills .nav-link.active {
+    background-color: #1f2937;
+    color: #58a6ff !important;
+    font-weight: 600;
+    border-left: 3px solid #388bfd;
+    border-radius: 4px;
+}
+
+/* ==========================================================================
+   Conteneur de carte Leaflet
+   ========================================================================== */
 .map-container {
-    flex: 1;
-    border-radius: 10px;
+    height: 100%;
+}
+
+#map {
+    background-color: #0b0d11;
+}
+
+/* ==========================================================================
+   Popups Leaflet
+   ========================================================================== */
+.leaflet-popup-content-wrapper {
+    background-color: #161b22 !important;
+    color: #f0f6fc !important;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
+    font-size: 12px;
+}
+
+.leaflet-popup-tip {
+    background-color: #161b22 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: #8b949e !important;
 }
