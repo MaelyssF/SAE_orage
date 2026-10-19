@@ -64,13 +64,13 @@ def generer_impacts(lat_ref: float, lon_ref: float, rayon_km: float, nb_impacts:
 
 
 
-def generer_un_impact(lat_ref: float = LATITUDE, lon_ref: float = LONGITUDE, rayon_km: float = 300.0) -> dict:
+def generer_un_impact(lat_ref: float = LATITUDE, lon_ref: float = LONGITUDE, rayon_km: float = 550.0) -> dict:
     """Fonction qui permet de générer un impact
 
     Args:
         lat_ref (float): Latitude de la référence
         lon_ref (float): Longitude de la référence
-        rayon_km (float): Rayon en kilomètres
+        rayon_km (float): Rayon en kilomètres, par défaut à 550 km (rayon de la France métropolitaine à partir d'Orléans)
     """
     dy_km = random.uniform(-rayon_km, rayon_km)
     dx_km = random.uniform(-rayon_km, rayon_km)
@@ -83,7 +83,16 @@ def generer_un_impact(lat_ref: float = LATITUDE, lon_ref: float = LONGITUDE, ray
         "longitude": round(lon, 4)
     }
 
+def generer_impact_france():
+    """Fonction qui permet de générer un impact aléatoire en France"""
+    lat_france = random.uniform(41.0, 51.0)
+    lon_france = random.uniform(-5.0, 9.0)
+    return {
+        "latitude": round(lat_france, 4),
+        "longitude": round(lon_france, 4)
+    }
+
 
 if __name__ == "__main__":
-    impact = generer_un_impact(rayon_km=500.0)
+    impact = generer_un_impact()
     print("Impact généré :", impact)
