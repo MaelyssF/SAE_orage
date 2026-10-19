@@ -46,3 +46,19 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"{NB_IMPACTS} impacts factices"
         ))
+
+
+def generer_impacts1(image: str, output_dir:str, seed: int = None):
+    """Fonction qui permet de générer un impact
+
+    Args:
+        image (str): _description_
+        output_dir (str): _description_
+        seed (int, optional): _description_. Defaults to None.
+    """
+
+
+def generer_impacts2():
+    """
+    """
+    pass
