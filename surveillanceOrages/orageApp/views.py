@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from django.views.decorators.csrf import csrf_exempt
 
-DOSSIER_SIMULATIONS = Path(__file__).resolve().parent.parent / "simulations"
+DOSSIER_SIMULATIONS = Path(__file__).resolve().parent / "simulations"
 DOSSIER_SIMULATIONS.mkdir(exist_ok=True)
 
 # Pages
