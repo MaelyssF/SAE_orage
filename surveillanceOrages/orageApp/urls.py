@@ -1,11 +1,18 @@
 from django.urls import path
-from orageApp.views import home_view, carte_view, simulateur_view, api_generer_impact, api_generer_10_impacts
+from orageApp.views import *
 
 urlpatterns = [
+    # Pages
     path('', home_view, name='home'),
     path('home/', home_view, name='home'),
     path('carte/', carte_view, name='carte'),
     path('simulateur/', simulateur_view, name='simulateur'),
+
+    # API endpoints
+
     path('api/generer-impact/', api_generer_impact, name='api_generer_impact'),
     path('api/generer-10-impacts/', api_generer_10_impacts, name='api_generer_10_impacts'),
+    path('api/sauvegarder-simulation/', api_sauvegarder_simulation, name='api_sauvegarder_simulation'),
+    path('api/lister-simulations/', api_lister_simulations, name='api_lister_simulations'),
+    path('api/charger-simulation/<str:nom_fichier>/', api_charger_simulation, name='api_charger_simulation'),
 ]
