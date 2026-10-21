@@ -88,7 +88,7 @@ class Releve(models.Model):
     INDICATEURS_ACTIVITE = models.TextChoices("INDICATEURS_ACTIVITE", "Nulle Faible Moderee Forte Violente")
 
     id_releve = models.AutoField(primary_key=True)
-    lieu_id = models.ForeignKey(Lieu_Surveille, on_delete=models.CASCADE, related_name="lieu_releve")
+    lieu_id = models.ForeignKey(Lieu_Surveille, on_delete=models.CASCADE, related_name="lieu_releve", null=True, blank=True)
     episode_id = models.ForeignKey(Episode, on_delete=models.SET_NULL, related_name="episode_releve", null=True)
     scenario_id = models.ForeignKey(Scenario_Simulation, on_delete=models.SET_NULL, related_name="scenario_releve", null=True)
     horodatage_donnee = models.DateTimeField()

@@ -1,4 +1,5 @@
 .env
+venv
 surveillanceOrages/__pycache__
 surveillanceOrages/orageApp/__pycache__
 surveillanceOrages/orageApp/migrations/__pycache__
