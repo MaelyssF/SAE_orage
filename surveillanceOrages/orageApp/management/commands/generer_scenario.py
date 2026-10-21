@@ -1,9 +1,8 @@
 # Génération d'un scénario synthétique d'orage se déplaçant directement vers la cible (Orléans)
-from .constantes import LATITUDE, LONGITUDE, KM_PAR_DEGRE
-from django.core.management.base import BaseCommand
-from django.utils import timezone
+
 from math import sin, cos, radians
 import random
+from constantes import LONGITUDE, LATITUDE, KM_PAR_DEGRE
 
 
 def generer_scenario_moving_direct(
@@ -279,5 +278,5 @@ if __name__ == "__main__":
     scenario = generer_scenario_moving_direct_from_coords(
         latitude=45.7640, longitude=4.8357, speed_kmh=40.0, frames=15
     )
-    print("Direction choisie :", scenario["trajectoire"]["direction_cardinale"])
-print("Centre à la frame 5 :", scenario["frames"][5]["centre_theorique"])
+    for i in range (len(scenario["frames"])):
+        print(f"Centre à la frame {i} :", scenario["frames"][i]["centre_theorique"])
