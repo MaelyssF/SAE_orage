@@ -1,27 +1,10 @@
+from .constantes import *
 import random
 from datetime import datetime
 from math import sin, cos, radians
-
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-
 # from .monApp.models import Impact
 
-# Orléans
-LATITUDE = 47.9025
-LONGITUDE = 1.9086
 
-
-NB_IMPACTS = 10
-rayon_km = 5
-KM_PAR_DEGRE = 111.0
-
-# Centre par défaut de la cellule : coin nord-est de la France (Lorraine)
-CELLULE_LATITUDE = 48.9
-CELLULE_LONGITUDE = 6.6
-
-# Temps entre deux impacts successifs d'une cellule, en secondes (fixe pour l'instant)
-INTERVALLE_IMPACTS_S = 1.0
 
 # class Command(BaseCommand):
 #     """
@@ -31,8 +14,8 @@ INTERVALLE_IMPACTS_S = 1.0
 #     # MSE = sum((y - t)**2)
 #     def handle(self, *args, **options):
 #         for i in range(NB_IMPACTS):
-#             dy_km = random.uniform(-rayon_km, rayon_km) # NORD - SUD
-#             dx_km = random.uniform(-rayon_km, rayon_km) # EST
+#             dy_km = random.uniform(-RAYON_KM, RAYON_KM) # NORD - SUD
+#             dx_km = random.uniform(-RAYON_KM, RAYON_KM) # EST
 #             lat = LATITUDE + dy_km / KM_PAR_DEGRE
 #             lon = LONGITUDE + dx_km / (KM_PAR_DEGRE * cos(radians(LATITUDE)))
 
