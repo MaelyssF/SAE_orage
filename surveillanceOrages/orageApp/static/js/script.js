@@ -206,17 +206,6 @@ if (mapElement) {
                 });
         });
     }
-    // Variables d'état de la simulation
-    let derniereCellule = null;     // Cellule actuellement affichée (à enregistrer)
-    let simulationTerminee = false; // Vrai quand tous les impacts sont apparus
-    let minuteurs = [];             // Stocke les setTimeout des impacts en attente
-    let numeroGeneration = 0;       // Identifie la génération en cours pour ignorer les réponses périmées
-
-    // Éléments du DOM
-    const btnGenererCellule = document.getElementById('btn-generer-cellule');
-    const btnEnregistrer = document.getElementById('btn-enregistrer');
-    const btnEffacer = document.getElementById('btn-effacer');
-    const messageSimulation = document.getElementById('message-simulation');
 
     function afficherMessage(texte) {
         if (messageSimulation) messageSimulation.textContent = texte;
@@ -322,7 +311,6 @@ if (mapElement) {
     }
 
     // Bouton effacer les impacts
-    const btnEffacer = document.getElementById('btn-effacer');
     if (btnEffacer) {
         btnEffacer.addEventListener('click', function () {
             if (impactsActuels.length === 0) {
@@ -425,8 +413,4 @@ if (mapElement) {
         });
     }
 
-    // Bouton Effacer
-    if (btnEffacer) {
-        btnEffacer.addEventListener('click', effacerImpacts);
-    }
 }
