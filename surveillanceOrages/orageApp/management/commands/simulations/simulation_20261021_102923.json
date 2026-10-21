@@ -1,0 +1,118 @@
+{
+  "id": "simulation_20261021_102923",
+  "type": "cellule_statique",
+  "debut": "2026-10-21T10:28:18+02:00",
+  "cree_le": "2026-10-21T10:29:23+02:00",
+  "parametres": {
+    "centre": {
+      "latitude": 48.9,
+      "longitude": 6.6
+    },
+    "rayon_km": 30.0,
+    "nb_impacts": 20,
+    "intervalle_s": 1.0,
+    "duree_s": 19.0
+  },
+  "impacts": [
+    {
+      "latitude": 49.028,
+      "longitude": 6.5652,
+      "t_s": 0.0
+    },
+    {
+      "latitude": 49.0218,
+      "longitude": 6.4496,
+      "t_s": 1.0
+    },
+    {
+      "latitude": 48.7036,
+      "longitude": 6.5684,
+      "t_s": 2.0
+    },
+    {
+      "latitude": 48.6799,
+      "longitude": 6.6306,
+      "t_s": 3.0
+    },
+    {
+      "latitude": 48.8429,
+      "longitude": 6.4214,
+      "t_s": 4.0
+    },
+    {
+      "latitude": 48.8742,
+      "longitude": 6.6929,
+      "t_s": 5.0
+    },
+    {
+      "latitude": 48.7446,
+      "longitude": 6.3279,
+      "t_s": 6.0
+    },
+    {
+      "latitude": 49.1154,
+      "longitude": 6.7334,
+      "t_s": 7.0
+    },
+    {
+      "latitude": 49.0388,
+      "longitude": 6.3579,
+      "t_s": 8.0
+    },
+    {
+      "latitude": 48.7155,
+      "longitude": 6.8967,
+      "t_s": 9.0
+    },
+    {
+      "latitude": 48.7371,
+      "longitude": 6.8929,
+      "t_s": 10.0
+    },
+    {
+      "latitude": 48.9091,
+      "longitude": 6.9309,
+      "t_s": 11.0
+    },
+    {
+      "latitude": 48.8621,
+      "longitude": 6.2974,
+      "t_s": 12.0
+    },
+    {
+      "latitude": 49.0236,
+      "longitude": 6.68,
+      "t_s": 13.0
+    },
+    {
+      "latitude": 49.0276,
+      "longitude": 6.5835,
+      "t_s": 14.0
+    },
+    {
+      "latitude": 48.7077,
+      "longitude": 6.8071,
+      "t_s": 15.0
+    },
+    {
+      "latitude": 49.0373,
+      "longitude": 6.6743,
+      "t_s": 16.0
+    },
+    {
+      "latitude": 48.8695,
+      "longitude": 6.8396,
+      "t_s": 17.0
+    },
+    {
+      "latitude": 48.9262,
+      "longitude": 6.4337,
+      "t_s": 18.0
+    },
+    {
+      "latitude": 48.8931,
+      "longitude": 6.4379,
+      "t_s": 19.0
+    }
+  ]
+}
