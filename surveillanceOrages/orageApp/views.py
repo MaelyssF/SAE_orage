@@ -51,59 +51,16 @@ def api_generer_cellule(request):
     return JsonResponse(cellule)
 
 
+@csrf_exempt
 @require_POST
 def api_enregistrer_simulation(request):
-    """Reçoit la cellule affichée par le navigateur et l'enregistre dans un fichier JSON"""
+    """Reçoit la simulation affichée par le navigateur et l'enregistre dans un fichier JSON"""
     try:
-        fichier = enregistrer_simulation(json.loads(request.body))
-    except ValueError as erreur:  # JSON illisible ou cellule invalide
-        return JsonResponse({"erreur": str(erreur)}, status=400)
-    return JsonResponse({"fichier": fichier}, status=201)
-
-
-# Simulations
-
-
-@csrf_exempt
-def api_sauvegarder_simulation(request):
-    """Vue API pour sauvegarder une simulation dans un fichier JSON"""
-    if request.method == "POST":
         donnees = json.loads(request.body)
-        impacts = donnees.get("impacts", [])
-
-        if not impacts:
-            return JsonResponse(
-                {"status": "error", "message": "Aucun impact à sauvegarder !"},
-                status=400,
-            )
-
-        maintenant = datetime.now()
-        nom_fichier = maintenant.strftime("simulation_%d-%m-%Y_%H-%M-%S.json")
-        date_lisible = maintenant.strftime("%d/%m/%Y à %H:%M:%S")
-
-        contenu = {
-            "date_heure": date_lisible,
-            "nb_impacts": len(impacts),
-            "impacts": impacts,
-        }
-
-        # Écriture du fichier JSON
-        chemin_fichier = DOSSIER_SIMULATIONS / nom_fichier
-        with open(chemin_fichier, "w", encoding="utf-8") as f:
-            json.dump(contenu, f, indent=2, ensure_ascii=False)
-
-        return JsonResponse(
-            {
-                "status": "ok",
-                "fichier": nom_fichier,
-                "date_heure": date_lisible,
-                "nb_impacts": len(impacts),
-            }
-        )
-
-    return JsonResponse(
-        {"status": "error", "message": "Méthode non autorisée"}, status=405
-    )
+        fichier = enregistrer_simulation(donnees)
+    except (ValueError, json.JSONDecodeError) as erreur:
+        return JsonResponse({"status": "error", "erreur": str(erreur)}, status=400)
+    return JsonResponse({"status": "ok", "fichier": fichier}, status=201)
 
 
 def api_lister_simulations(request):
@@ -125,6 +82,8 @@ def api_lister_simulations(request):
                 nb_impacts = data.get("nb_impacts")
                 if nb_impacts is None and "parametres" in data:
                     nb_impacts = data["parametres"].get("nb_impacts")
+                if nb_impacts is None and "frames" in data:
+                    nb_impacts = sum(len(f.get("impacts", [])) for f in data["frames"])
                 if nb_impacts is None:
                     nb_impacts = len(data.get("impacts", []))
 
@@ -133,6 +92,7 @@ def api_lister_simulations(request):
                         "fichier": fichier.name,
                         "date_heure": str(date_str),
                         "nb_impacts": nb_impacts,
+                        "type": data.get("type", "simulation"),
                     }
                 )
         except Exception:

@@ -12,7 +12,6 @@ const infoScenario = document.getElementById('info-scenario');
 const btnGenerer = document.getElementById('btn-generer');
 const btnGenerer10 = document.getElementById('btn-generer-10');
 const btnEffacer = document.getElementById('btn-effacer');
-const btnSauvegarder = document.getElementById('btn-sauvegarder');
 const btnCharger = document.getElementById('btn-charger');
 
 // Variables d'état global
@@ -287,11 +286,40 @@ if (mapElement) {
     }
 
     // -------------------------------------------------------------------------
-    // Enregistrement de la cellule statique validée
+    // Enregistrement de la simulation
     // -------------------------------------------------------------------------
     if (btnEnregistrer) {
         btnEnregistrer.addEventListener('click', function () {
-            if (!derniereCellule || !simulationTerminee) return;
+            let payload = null;
+
+            if (scenarioActuel) {
+                payload = {
+                    type: "scenario_mobile",
+                    point_depart: scenarioActuel.point_depart,
+                    trajectoire: scenarioActuel.trajectoire,
+                    parametres: scenarioActuel.parametres,
+                    frames: scenarioActuel.frames
+                };
+            } else if (derniereCellule && simulationTerminee) {
+                payload = {
+                    type: "cellule_statique",
+                    debut: derniereCellule.debut,
+                    centre: derniereCellule.centre,
+                    rayon_km: derniereCellule.rayon_km,
+                    intervalle_s: derniereCellule.intervalle_s,
+                    impacts: derniereCellule.impacts
+                };
+            } else if (impactsActuels.length > 0) {
+                payload = {
+                    type: "impacts_libres",
+                    impacts: impactsActuels
+                };
+            }
+
+            if (!payload) {
+                afficherMessage("Aucune simulation active à enregistrer !");
+                return;
+            }
 
             const jetonEl = document.querySelector('[name=csrfmiddlewaretoken]');
             const jeton = jetonEl ? jetonEl.value : '';
@@ -301,17 +329,20 @@ if (mapElement) {
 
             fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': jeton },
-                body: JSON.stringify(derniereCellule)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': jeton
+                },
+                body: JSON.stringify(payload)
             })
                 .then(res => res.json().then(donnees => ({ ok: res.ok, donnees })))
                 .then(({ ok, donnees }) => {
+                    btnEnregistrer.disabled = false;
                     if (ok) {
-                        afficherMessage(`Enregistrée avec succès : ${donnees.fichier}`);
+                        afficherMessage(`Simulation enregistrée : ${donnees.fichier}`);
                         chargerListeSimulations();
                     } else {
-                        btnEnregistrer.disabled = false;
-                        afficherMessage(`Échec : ${donnees.erreur}`);
+                        afficherMessage(`Échec : ${donnees.erreur || 'erreur serveur'}`);
                     }
                 })
                 .catch(err => {
@@ -340,6 +371,8 @@ if (mapElement) {
                         sliderScenario.max = data.frames.length - 1;
                         sliderScenario.value = 0;
                     }
+
+                    if (btnEnregistrer) btnEnregistrer.disabled = false;
 
                     afficherMessage(`Scénario mobile prêt : ${data.frames.length} étapes.`);
                     afficherFrame(0);
@@ -379,6 +412,7 @@ if (mapElement) {
                 .then(data => {
                     afficherImpact(data);
                     impactsActuels.push({ latitude: data.latitude, longitude: data.longitude });
+                    if (btnEnregistrer) btnEnregistrer.disabled = false;
                 })
                 .catch(error => console.error('Erreur génération 1 impact :', error));
         });
@@ -394,6 +428,7 @@ if (mapElement) {
                             afficherImpact(impact);
                             impactsActuels.push({ latitude: impact.latitude, longitude: impact.longitude });
                         });
+                        if (btnEnregistrer) btnEnregistrer.disabled = false;
                     }
                 })
                 .catch(error => console.error('Erreur génération 10 impacts :', error));
@@ -406,30 +441,6 @@ if (mapElement) {
     if (btnEffacer) {
         btnEffacer.addEventListener('click', function () {
             effacerImpacts();
-        });
-    }
-
-    // -------------------------------------------------------------------------
-    // Sauvegarde JSON directe des impacts présents sur la carte
-    // -------------------------------------------------------------------------
-    if (btnSauvegarder) {
-        btnSauvegarder.addEventListener('click', function () {
-            if (impactsActuels.length === 0) {
-                alert("Aucun impact sur la carte à enregistrer !");
-                return;
-            }
-
-            fetch('/orageApp/api/sauvegarder-simulation/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ impacts: impactsActuels })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(`Simulation enregistrée avec succès !\nFichier : ${data.fichier}\nTotal : ${data.nb_impacts} impacts`);
-                    chargerListeSimulations();
-                })
-                .catch(err => console.error("Erreur sauvegarde :", err));
         });
     }
 
@@ -449,19 +460,31 @@ if (mapElement) {
                 .then(data => {
                     effacerImpacts();
 
-                    // Récupération des impacts quel que soit le format enregistré
-                    impactsActuels = data.impacts || [];
+                    if (data.frames && Array.isArray(data.frames) && data.frames.length > 0) {
+                        // Rejeu d'un scénario mobile avec étapes
+                        scenarioActuel = data;
+                        if (sliderScenario) {
+                            sliderScenario.disabled = false;
+                            sliderScenario.max = data.frames.length - 1;
+                            sliderScenario.value = 0;
+                        }
+                        afficherFrame(0);
+                        if (btnEnregistrer) btnEnregistrer.disabled = false;
+                        afficherMessage(`Scénario mobile rejoué : ${data.frames.length} étapes (${data.nb_impacts || 0} impacts).`);
+                    } else {
+                        // Rejeu d'une cellule statique ou d'impacts libres
+                        impactsActuels = data.impacts || [];
+                        impactsActuels.forEach(imp => {
+                            afficherImpact(imp);
+                        });
 
-                    impactsActuels.forEach(imp => {
-                        afficherImpact(imp);
-                    });
+                        if (data.parametres && data.parametres.centre) {
+                            map.setView([data.parametres.centre.latitude, data.parametres.centre.longitude], 8);
+                        }
 
-                    // Si la simulation possède un centre, on recentre la carte dessus
-                    if (data.parametres && data.parametres.centre) {
-                        map.setView([data.parametres.centre.latitude, data.parametres.centre.longitude], 8);
+                        if (btnEnregistrer) btnEnregistrer.disabled = false;
+                        afficherMessage(`Simulation restaurée : ${impactsActuels.length} impacts.`);
                     }
-
-                    afficherMessage(`Simulation restaurée : ${impactsActuels.length} impacts.`);
                 })
                 .catch(err => console.error("Erreur chargement simulation :", err));
         });

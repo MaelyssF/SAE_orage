@@ -1,17 +1,17 @@
 """Stockage des simulations : un fichier JSON par simulation, dans orageApp/simulations/.
 
 Le serveur ne garde rien en mémoire entre deux requêtes : c'est le navigateur qui renvoie la
-cellule qu'il affiche, et ce module la vérifie avant de l'écrire. On n'écrit jamais ce que le
+simulation qu'il affiche, et ce module la vérifie avant de l'écrire. On n'écrit jamais ce que le
 client envoie tel quel : on reconstruit un dictionnaire propre à partir des seuls champs attendus.
 """
 
 import json
 from datetime import datetime
-from pathlib import Path
 
-DOSSIER_SIMULATIONS = Path(__file__).resolve().parent.parent / "simulations"
-NB_IMPACTS_MAX = 1000
-DUREE_MAX_S = 24 * 3600  # un impact ne peut pas tomber plus de 24 h après le début de la cellule
+try:
+    from .constantes import DOSSIER_SIMULATIONS, NB_IMPACTS_MAX, DUREE_MAX_S
+except ImportError:
+    from constantes import DOSSIER_SIMULATIONS, NB_IMPACTS_MAX, DUREE_MAX_S
 
 
 def _nombre(valeur, nom: str, minimum: float, maximum: float) -> float:
@@ -29,15 +29,20 @@ def _coordonnees(point, nom: str) -> dict:
     if not isinstance(point, dict):
         raise ValueError(f"« {nom} » doit contenir une latitude et une longitude.")
     return {
-        "latitude": _nombre(point.get("latitude"), f"{nom}.latitude", -90, 90),
-        "longitude": _nombre(point.get("longitude"), f"{nom}.longitude", -180, 180),
+        "latitude": round(_nombre(point.get("latitude"), f"{nom}.latitude", -90, 90), 4),
+        "longitude": round(_nombre(point.get("longitude"), f"{nom}.longitude", -180, 180), 4),
     }
 
 
 def _impact(impact) -> dict:
-    """Un impact : sa position et l'instant de sa chute (en secondes depuis le début de la cellule)"""
+    """Un impact : sa position et optionnellement son instant et intensité"""
     position = _coordonnees(impact, "impact")
-    position["t_s"] = _nombre(impact.get("t_s"), "impact.t_s", 0, DUREE_MAX_S)
+    if "t_s" in impact and impact["t_s"] is not None:
+        position["t_s"] = _nombre(impact.get("t_s"), "impact.t_s", 0, DUREE_MAX_S)
+    if "intensite_ka" in impact and impact["intensite_ka"] is not None:
+        position["intensite_ka"] = _nombre(impact.get("intensite_ka"), "impact.intensite_ka", -1000, 1000)
+    if "id" in impact and isinstance(impact["id"], int):
+        position["id"] = impact["id"]
     return position
 
 
@@ -53,10 +58,7 @@ def _debut(valeur) -> str:
 
 
 def valider_cellule(donnees) -> dict:
-    """Contrôle une cellule reçue du navigateur et renvoie une version propre.
-
-    Lève ValueError, avec un message lisible, si quelque chose cloche.
-    """
+    """Contrôle une cellule statique reçue du navigateur et renvoie une version propre."""
     if not isinstance(donnees, dict):
         raise ValueError("Le corps de la requête doit être un objet JSON.")
 
@@ -65,21 +67,92 @@ def valider_cellule(donnees) -> dict:
         raise ValueError(f"« impacts » doit être une liste de 1 à {NB_IMPACTS_MAX} impacts.")
 
     return {
+        "type": "cellule_statique",
         "debut": _debut(donnees.get("debut")),
         "centre": _coordonnees(donnees.get("centre"), "centre"),
         "rayon_km": _nombre(donnees.get("rayon_km"), "rayon_km", 0.1, 500),
-        "intervalle_s": _nombre(donnees.get("intervalle_s"), "intervalle_s", 0.001, 3600),
+        "intervalle_s": _nombre(donnees.get("intervalle_s", 1.0), "intervalle_s", 0.001, 3600),
         "impacts": [_impact(impact) for impact in impacts],
     }
 
 
+def valider_scenario_mobile(donnees) -> dict:
+    """Contrôle un scénario mobile avec étapes (frames) et renvoie une version propre."""
+    frames_brutes = donnees.get("frames")
+    if not isinstance(frames_brutes, list) or len(frames_brutes) == 0:
+        raise ValueError("Un scénario mobile doit comporter au moins une étape (frame).")
+
+    frames_validees = []
+    tous_impacts = []
+
+    for i, frame in enumerate(frames_brutes):
+        frame_impacts = [_impact(imp) for imp in frame.get("impacts", [])]
+        tous_impacts.extend(frame_impacts)
+
+        f_val = {
+            "frame_index": i,
+            "temps_secondes": _nombre(frame.get("temps_secondes", 0), f"frame[{i}].temps_secondes", 0, DUREE_MAX_S),
+            "impacts": frame_impacts,
+        }
+        if "centre_theorique" in frame and frame["centre_theorique"]:
+            f_val["centre_theorique"] = _coordonnees(frame["centre_theorique"], f"frame[{i}].centre_theorique")
+        if "distance_parcourue_km" in frame:
+            f_val["distance_parcourue_km"] = _nombre(frame["distance_parcourue_km"], f"frame[{i}].distance_parcourue_km", 0, 10000)
+
+        frames_validees.append(f_val)
+
+    resultat = {
+        "type": "scenario_mobile",
+        "scenario": donnees.get("scenario", "moving_linear"),
+        "parametres": donnees.get("parametres", {}),
+        "frames": frames_validees,
+        "impacts": tous_impacts,
+    }
+
+    if "point_depart" in donnees and donnees["point_depart"]:
+        resultat["point_depart"] = _coordonnees(donnees["point_depart"], "point_depart")
+    if "trajectoire" in donnees and isinstance(donnees["trajectoire"], dict):
+        resultat["trajectoire"] = donnees["trajectoire"]
+
+    return resultat
+
+
+def valider_impacts_libres(donnees) -> dict:
+    """Contrôle une liste libre d'impacts."""
+    impacts = donnees.get("impacts")
+    if not isinstance(impacts, list) or not 1 <= len(impacts) <= NB_IMPACTS_MAX:
+        raise ValueError(f"« impacts » doit être une liste de 1 à {NB_IMPACTS_MAX} impacts.")
+
+    return {
+        "type": "impacts_libres",
+        "impacts": [_impact(impact) for impact in impacts],
+    }
+
+
+def valider_simulation(donnees) -> dict:
+    """Détecte le type de simulation et applique la validation appropriée."""
+    if not isinstance(donnees, dict):
+        raise ValueError("Le corps de la requête doit être un objet JSON.")
+
+    sim_type = donnees.get("type")
+
+    if sim_type == "scenario_mobile" or "frames" in donnees:
+        return valider_scenario_mobile(donnees)
+    elif sim_type == "cellule_statique" or ("centre" in donnees and "rayon_km" in donnees and "debut" in donnees):
+        return valider_cellule(donnees)
+    elif "impacts" in donnees:
+        return valider_impacts_libres(donnees)
+    else:
+        raise ValueError("Format de simulation inconnu ou liste d'impacts absente.")
+
+
 def enregistrer_simulation(donnees) -> str:
-    """Écrit la cellule dans un nouveau fichier JSON et renvoie le nom de ce fichier.
+    """Écrit la simulation dans un nouveau fichier JSON et renvoie le nom de ce fichier.
 
     Le nom est simulation_AAAAMMJJ_HHMMSS.json ; si ce nom existe déjà (deux enregistrements
     dans la même seconde), un numéro est ajouté (_2, _3...). Un fichier existant n'est jamais écrasé.
     """
-    cellule = valider_cellule(donnees)
+    simulation = valider_simulation(donnees)
     maintenant = datetime.now().astimezone()
 
     DOSSIER_SIMULATIONS.mkdir(exist_ok=True)
@@ -94,20 +167,40 @@ def enregistrer_simulation(donnees) -> str:
             numero += 1
             nom = f"{base}_{numero}"
 
+    date_lisible = maintenant.strftime("%d/%m/%Y à %H:%M:%S")
+
     contenu = {
         "id": nom,
-        "type": "cellule_statique",
-        "debut": cellule["debut"],  # l'horodatage d'un impact = debut + t_s
-        "cree_le": maintenant.isoformat(timespec="seconds"),  # moment de l'enregistrement
-        "parametres": {
-            "centre": cellule["centre"],
-            "rayon_km": cellule["rayon_km"],
-            "nb_impacts": len(cellule["impacts"]),
-            "intervalle_s": cellule["intervalle_s"],
-            "duree_s": max(impact["t_s"] for impact in cellule["impacts"]),
-        },
-        "impacts": cellule["impacts"],
+        "type": simulation["type"],
+        "cree_le": maintenant.isoformat(timespec="seconds"),
+        "date_heure": date_lisible,
+        "nb_impacts": len(simulation.get("impacts", [])),
     }
+
+    if simulation["type"] == "cellule_statique":
+        contenu["debut"] = simulation["debut"]
+        contenu["parametres"] = {
+            "centre": simulation["centre"],
+            "rayon_km": simulation["rayon_km"],
+            "nb_impacts": len(simulation["impacts"]),
+            "intervalle_s": simulation["intervalle_s"],
+            "duree_s": max((impact.get("t_s", 0) for impact in simulation["impacts"]), default=0),
+        }
+        contenu["impacts"] = simulation["impacts"]
+
+    elif simulation["type"] == "scenario_mobile":
+        if "point_depart" in simulation:
+            contenu["point_depart"] = simulation["point_depart"]
+        if "trajectoire" in simulation:
+            contenu["trajectoire"] = simulation["trajectoire"]
+        if "parametres" in simulation:
+            contenu["parametres"] = simulation["parametres"]
+        contenu["frames"] = simulation["frames"]
+        contenu["impacts"] = simulation["impacts"]
+
+    else:  # impacts_libres
+        contenu["impacts"] = simulation["impacts"]
+
     with fichier:
         json.dump(contenu, fichier, ensure_ascii=False, indent=2)
     return chemin.name
