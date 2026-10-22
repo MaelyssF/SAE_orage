@@ -122,9 +122,9 @@ def api_generer_scenario(request):
 
     if lat and lon:
         scenario = generer_scenario_moving_direct_from_coords(
-            latitude=float(lat), longitude=float(lon)
+            latitude=float(lat), longitude=float(lon), speed_kmh=40.0, start_distance_km=150.0, frames=50, spread_km=30.0
         )
     else:
-        scenario = generer_scenario_moving_direct_from_coords()
+        scenario = generer_scenario_moving_direct_from_coords(spread_km=30.0, speed_kmh=70.0, interval_seconds=500, frames=60)
 
     return JsonResponse(scenario)

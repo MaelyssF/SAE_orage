@@ -47,7 +47,7 @@ def _impact(impact) -> dict:
 
 
 def _debut(valeur) -> str:
-    """Date et heure de début de la cellule, au format ISO 8601 (ex. 2026-10-20T12:22:05+02:00)"""
+    """Date et heure de début de la cellule"""
     if not isinstance(valeur, str):
         raise ValueError("« debut » doit être une date au format ISO 8601.")
     try:
