@@ -33,6 +33,21 @@
                 <button id="btn-generer-10" class="btn btn-outline-warning d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-cloud-lightning"></i> 10 impacts
                 </button>
+                <button id="btn-generer-scenario" class="btn btn-outline-info d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-cloud-lightning-rain"></i> Démarer l'orage mobile
+                </button>
+                <div class="mt-2 p-2 bg-dark rounded border border-secondary">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="slider-scenario" class="form-label small text-secondary mb-0">Contrôle temporel :</label>
+                        <button id="btn-play-pause" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size: 11px;">
+                            <i class="bi bi-play-fill"></i> Lecture
+                        </button>
+                    </div>
+                    <input type="range" class="form-range" id="slider-scenario" min="0" max="29" value="0" disabled>
+                    <div id="info-scenario" class="text-body-secondary small" style="font-size: 11px;">
+                        En attente du lancement d'un orage...
+                    </div>
+                </div>
                 <button id="btn-sauvegarder" class="btn btn-primary d-flex align-items-center justify-content-center gap-2 mt-2">
                     <i class="bi bi-floppy"></i> Enregistrer en JSON
                 </button>

@@ -2,7 +2,7 @@
 
 from math import sin, cos, radians
 import random
-from constantes import LONGITUDE, LATITUDE, KM_PAR_DEGRE
+from .constantes import LONGITUDE, LATITUDE, KM_PAR_DEGRE
 
 
 def generer_scenario_moving_direct(

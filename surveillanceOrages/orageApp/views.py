@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from .management.commands.generer_impacts import *
+from .management.commands.generer_scenario import *
 import json
 from datetime import datetime
 from pathlib import Path
@@ -121,3 +122,16 @@ def api_charger_simulation(request, nom_fichier):
     return JsonResponse(
         {"status": "error", "message": "Fichier introuvable !"}, status=404
     )
+
+
+def api_generer_scenario(request):
+    """Vue API pour générer un scénario d'impacts aléatoires en France"""
+    lat = request.GET.get("lat")
+    lon = request.GET.get("lon")
+
+    if lat and lon:
+        scenario = generer_scenario_moving_direct_from_coords(latitude=float(lat), longitude=float(lon))
+    else :
+        scenario = generer_scenario_moving_direct_from_coords()
+
+    return JsonResponse(scenario)

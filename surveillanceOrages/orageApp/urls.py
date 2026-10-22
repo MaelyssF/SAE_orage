@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/sauvegarder-simulation/', api_sauvegarder_simulation, name='api_sauvegarder_simulation'),
     path('api/lister-simulations/', api_lister_simulations, name='api_lister_simulations'),
     path('api/charger-simulation/<str:nom_fichier>/', api_charger_simulation, name='api_charger_simulation'),
+    path('api/generer-scenario/', api_generer_scenario, name='api_generer_scenario'),
 ]

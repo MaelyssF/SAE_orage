@@ -1,6 +1,10 @@
 const mapElement = document.getElementById('map');
 const selectSimulations = document.getElementById('select-simulations');
 
+
+/** 
+ * Charge la liste des simulations disponibles depuis l'API et les affiche dans le menu déroulant
+*/
 function chargerListeSimulations() {
     if (!selectSimulations) return;
 
@@ -20,10 +24,12 @@ function chargerListeSimulations() {
             });
         });
 }
-chargerListeSimulations();
+chargerListeSimulations(); // On charge la liste des simulations dès le chargement de la page
 
 
 if (mapElement) {
+    let scenarioActuel = null;
+    let timerAnimation = null;
     const map = L.map('map').setView([46.60, 2.20], 6);
     let impactsActuels = [];
 
@@ -41,6 +47,69 @@ if (mapElement) {
             .setContent(`<b>Position sélectionnée</b><br>Lat: ${latitude}<br>Lon: ${longitude}`)
             .openOn(map);
     });
+
+    /** 
+     * Réinitialise la carte en supprimant tous les points affichés
+     */
+    function resetMap() {
+        if (impactsActuels.length === 0) {
+            alert("Aucun impact sur la carte à effacer !");
+            return;
+        }
+        map.eachLayer(function (layer) {
+            if (layer instanceof L.CircleMarker) {
+                map.removeLayer(layer);
+            }
+        });
+        impactsActuels = [];
+    }
+
+    /**
+     * Affiche la frame du scénario de simulation d'orage à l'index donné
+     */
+    function afficherFrame(index) {
+        if (!scenarioActuel || !scenarioActuel.frames[index]) return;
+
+        // On efface les points de la frame précédente
+        map.eachLayer(function (layer) {
+            if (layer instanceof L.CircleMarker || layer instanceof L.Circle) {
+                map.removeLayer(layer);
+            }
+        });
+
+        const frame = scenarioActuel.frames[index];
+        const traj = scenarioActuel.trajectoire;
+
+        // On trace les 20 impacts de cette étape
+        frame.impacts.forEach(imp => {
+            L.circleMarker([imp.latitude, imp.longitude], {
+                radius: 3,
+                color: "#ff3333",
+                fillColor: "#ff0000",
+                fillOpacity: 0.95,
+                weight: 1
+            }).addTo(map);
+        });
+
+        // Le cercle matérialisant la cellule orageuse
+        L.circle([frame.centre_theorique.latitude, frame.centre_theorique.longitude], {
+            radius: 4000, // 4 km
+            color: "#388bfd",
+            fillOpacity: 0.08,
+            weight: 1,
+            dashArray: "4, 4"
+        }).addTo(map);
+
+        // Mise à jour de la barre et des infos
+        const slider = document.getElementById('slider-scenario');
+        const infoText = document.getElementById('info-scenario');
+        if (slider) slider.value = index;
+
+        if (infoText) {
+            const minutes = Math.floor(frame.temps_secondes / 60);
+            infoText.innerHTML = `Étape : <b>${index + 1}/30</b> (+${minutes} min)<br>Distance : ${frame.distance_parcourue_km} km | Cap : ${traj.direction_cardinale} (${traj.direction_deg}°)`;
+        }
+    }
 
     // Bouton générer 1 impact
     const btnGenerer = document.getElementById('btn-generer');
@@ -94,16 +163,7 @@ if (mapElement) {
     const btnEffacer = document.getElementById('btn-effacer');
     if (btnEffacer) {
         btnEffacer.addEventListener('click', function () {
-            if (impactsActuels.length === 0) {
-                alert("Aucun impact sur la carte à effacer !");
-                return;
-            }
-            map.eachLayer(function (layer) {
-                if (layer instanceof L.CircleMarker) {
-                    map.removeLayer(layer);
-                }
-            });
-            impactsActuels = [];
+            resetMap();
         });
     }
 
