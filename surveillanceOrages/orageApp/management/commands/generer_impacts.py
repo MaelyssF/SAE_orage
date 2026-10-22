@@ -1,7 +1,9 @@
-from .constantes import LATITUDE, LONGITUDE, KM_PAR_DEGRE
+from .constantes import *
 import random
-from math import cos, radians
+from datetime import datetime
+from math import sin, cos, radians
 # from .monApp.models import Impact
+
 
 
 # class Command(BaseCommand):
@@ -97,6 +99,182 @@ def generer_impacts(nb_impacts: int = 10) -> list:
     return [generer_impact_france() for _ in range(nb_impacts)]
 
 
+# Génération d'une cellule orageuse statique (un groupement d'impacts)
+
+
+def distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Distance approximative en km entre deux points proches (même formule que generer_un_impact, à l'envers)"""
+    dy_km = (lat2 - lat1) * KM_PAR_DEGRE
+    dx_km = (lon2 - lon1) * KM_PAR_DEGRE * cos(radians(lat1))
+    return (dx_km**2 + dy_km**2) ** 0.5
+
+
+def generer_cellule_statique(
+    nb_impacts: int = 20,
+    lat_centre: float = CELLULE_LATITUDE,
+    lon_centre: float = CELLULE_LONGITUDE,
+    rayon_km: float = 30.0,
+    intervalle_s: float = INTERVALLE_IMPACTS_S,
+) -> dict:
+    """Génère une cellule orageuse immobile : nb_impacts impacts regroupés autour d'un centre
+
+    Réutilise generer_un_impact (qui tire dans un carré de côté 2 x rayon_km) et ne garde que
+    les impacts situés à moins de rayon_km du centre : la cellule est donc un disque, et non un carré.
+
+    Les impacts ne tombent pas tous en même temps : le k-ième impact (k = 0, 1, 2...) tombe
+    k x intervalle_s secondes après le début de la cellule (champ "t_s" de chaque impact).
+
+    Args:
+        nb_impacts (int): Nombre d'impacts de la cellule (par défaut à 20)
+        lat_centre (float): Latitude du centre de la cellule (par défaut en Lorraine)
+        lon_centre (float): Longitude du centre de la cellule (par défaut en Lorraine)
+        rayon_km (float): Rayon de la cellule en kilomètres (par défaut à 30.0km)
+        intervalle_s (float): Temps entre deux impacts successifs en secondes (par défaut à 1.0s)
+
+    Returns:
+        dict: Le début de la cellule, son centre, son rayon, l'intervalle entre impacts et la liste
+        des impacts (chacun avec sa latitude, sa longitude et son instant de chute t_s en secondes)
+    """
+    impacts = []
+    while len(impacts) < nb_impacts:
+        impact = generer_un_impact(lat_centre, lon_centre, rayon_km)
+        if distance_km(lat_centre, lon_centre, impact["latitude"], impact["longitude"]) <= rayon_km:
+            impact["t_s"] = round(len(impacts) * intervalle_s, 3)
+            impacts.append(impact)
+
+    return {
+        "debut": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "centre": {"latitude": lat_centre, "longitude": lon_centre},
+        "rayon_km": rayon_km,
+        "nb_impacts": nb_impacts,
+        "intervalle_s": intervalle_s,
+        "impacts": impacts,
+    }
+
+
+# Génération d'un scénario synthétique d'orage se déplaçant directement vers la cible (Orléans)
+
+
+def generer_scenario_moving_direct(
+    lat_cible: float = LATITUDE,
+    lon_cible: float = LONGITUDE,
+    frames: int = 30,
+    interval_seconds: int = 120,
+    speed_kmh: float = 40.0,
+    start_distance_km: float = 35.0,
+    count: int = 20,
+    spread_km: float = 4.0,
+    seed: int = 43,
+) -> dict:
+    """
+    Génère un scénario synthétique d'orage se déplaçant directement vers la cible
+
+    Args:
+        lat_cible (float): Latitude de la cible (par défaut à Orléans)
+        lon_cible (float): Longitude de la cible (par défaut à Orléans)
+        frames (int): Nombre de frames dans le scénario (par défaut à 30)
+        interval_seconds (int): Intervalle de temps entre chaque frame en secondes (par défaut à 120s)
+        speed_kmh (float): Vitesse de déplacement de l'orage en km/h (par défaut à 40.0)
+        start_distance_km (float): Distance initiale de l'orage par rapport à la cible en km (par défaut à 35.0km)
+        count (int): Nombre d'impacts générés par frame (par défaut à 20)
+        spread_km (float): Dispersion des impacts autour du centre de l'orage en km (par défaut à 4.0km)
+        seed (int): Graine pour la génération aléatoire (par défaut à 43)
+
+    Returns:
+        dict: Dictionnaire contenant les coordonnées (latitude et longitude) de l'impact généré
+    """
+    if seed:
+        random.seed(seed)
+
+    # Position initiale de l'orage à 45° (Nord-Est) par rapport à la cible
+    angle_rad = radians(45)
+    dx_init = start_distance_km * sin(angle_rad)  # Vers l'Est
+    dy_init = start_distance_km * cos(angle_rad)  # Vers le Nord
+
+    frames_data = []
+    impact_id = 1
+
+    for k in range(frames):
+        temps_sec = k * interval_seconds
+
+        # Distance parcourue depuis le début en km
+        distance_parcourue = speed_kmh * (temps_sec / 3600.0)
+
+        # Progression vers la cible
+        ratio = max(
+            0.0, (start_distance_km - distance_parcourue) / start_distance_km
+        )
+
+        # Coordonnées du centre de la cellule à cette frame
+        dx_centre = dx_init * ratio
+        dy_centre = dy_init * ratio
+
+        lat_centre = lat_cible + dy_centre / KM_PAR_DEGRE
+    
+        lon_centre = lon_cible + dx_centre / (
+            KM_PAR_DEGRE
+            * cos(radians(lat_cible))
+        )
+
+        dist_actuelle_cible = round(start_distance_km - distance_parcourue, 2)
+
+        # Génération des impacts autour du centre de la cellule
+        impacts_frame = []
+        for _ in range(count):
+            dx_imp = random.uniform(-spread_km, spread_km)
+            dy_imp = random.uniform(-spread_km, spread_km)
+
+            lat_imp = lat_centre + dy_imp / KM_PAR_DEGRE
+        
+            lon_imp = lon_centre + dx_imp / (
+                KM_PAR_DEGRE
+                * cos(radians(lat_centre))
+            )
+
+            impacts_frame.append(
+                {
+                    "id": impact_id,
+                    "latitude": round(lat_imp, 4),
+                    "longitude": round(lon_imp, 4),
+                    "intensite_ka": round(-abs(random.gauss(25.0, 10.0)), 1),
+                }
+            )
+            impact_id += 1
+
+        # Enregistrement des données de la frame
+        frames_data.append(
+            {
+                "frame_index": k,
+                "temps_secondes": temps_sec,
+                "centre_theorique": {
+                    "latitude": round(lat_centre, 4),
+                    "longitude": round(lon_centre, 4),
+                    "distance_cible_km": dist_actuelle_cible,
+                },
+                "impacts": impacts_frame,
+            }
+        )
+
+    return {
+        "scenario": "moving_direct",
+        "lieu_cible": {"latitude": lat_cible, "longitude": lon_cible},
+        "parametres": {
+            "frames": frames,
+            "interval_seconds": interval_seconds,
+            "speed_kmh": speed_kmh,
+            "start_distance_km": start_distance_km,
+            "count_per_frame": count,
+            "spread_km": spread_km,
+        },
+        "frames": frames_data,
+        }
+
+
 if __name__ == "__main__":
-    impacts = generer_impacts()
-    print("Impacts générés :", impacts)
+    # impacts = generer_impacts()
+    # print("Impacts générés :", impacts)
+    scenario = generer_scenario_moving_direct()
+    print("Scénario généré avec", len(scenario["frames"]), "frames.")
+    print("Frame 0 (départ) :", scenario["frames"][0]["centre_theorique"])
+    print("Frame 15 (mi-parcours) :", scenario["frames"][15]["centre_theorique"])
+    print("Frame 26 (arrivée sur cible) :", scenario["frames"][26]["centre_theorique"])

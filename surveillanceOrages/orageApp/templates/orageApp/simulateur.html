@@ -27,11 +27,11 @@
                 <i class="bi bi-lightning-charge"></i> Actions rapides
             </h6>
             <div class="d-grid gap-2">
-                <button id="btn-generer" class="btn btn-success d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-lightning"></i> 1 impact
+                <button id="btn-generer-cellule" data-api-url="{% url 'api_generer_cellule' %}" class="btn btn-success d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-cloud-lightning"></i> Générer une cellule
                 </button>
-                <button id="btn-generer-10" class="btn btn-outline-warning d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-cloud-lightning"></i> 10 impacts
+                <button id="btn-enregistrer" data-api-url="{% url 'api_enregistrer_simulation' %}" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2" disabled>
+                    <i class="bi bi-save"></i> Enregistrer
                 </button>
                 <button id="btn-generer-scenario" class="btn btn-outline-info d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-cloud-lightning-rain"></i> Démarer l'orage mobile
@@ -52,6 +52,8 @@
                     <i class="bi bi-floppy"></i> Enregistrer en JSON
                 </button>
             </div>
+            <small id="message-simulation" class="d-block mt-2 text-body-secondary" role="status"></small>
+            {% csrf_token %}
         </div>
     </div>
 

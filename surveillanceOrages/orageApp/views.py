@@ -1,5 +1,8 @@
+import json
+
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from .management.commands.generer_impacts import *
 from .management.commands.generer_scenario import *
 import json
@@ -31,15 +34,27 @@ def simulateur_view(request):
 
 
 def api_generer_impact(request):
-    """Vue API pour générer un impact aléatoire en France"""
     impact = generer_impact_france()
     return JsonResponse(impact)
 
 
 def api_generer_10_impacts(request):
-    """Vue API pour générer 10 impacts aléatoires en France"""
     impacts = generer_impacts()
     return JsonResponse({"impacts": impacts})
+
+def api_generer_cellule(request):
+    cellule = generer_cellule_statique()
+    return JsonResponse(cellule)
+
+@require_POST
+def api_enregistrer_simulation(request):
+    """Reçoit la cellule affichée par le navigateur et l'enregistre dans un fichier JSON"""
+    try:
+        fichier = enregistrer_simulation(json.loads(request.body))
+    except ValueError as erreur:  # JSON illisible ou cellule invalide
+        return JsonResponse({"erreur": str(erreur)}, status=400)
+    return JsonResponse({"fichier": fichier}, status=201)
+
 
 
 # Simulations
