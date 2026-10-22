@@ -2,7 +2,11 @@
 
 from math import sin, cos, radians
 import random
-from .constantes import LONGITUDE, LATITUDE, KM_PAR_DEGRE
+
+try:
+    from .constantes import LONGITUDE, LATITUDE, KM_PAR_DEGRE
+except ImportError:
+    from constantes import LONGITUDE, LATITUDE, KM_PAR_DEGRE
 
 
 def generer_scenario_moving_direct(
@@ -99,10 +103,7 @@ def generer_scenario_moving_direct(
 
     return {
         "scenario": "moving_direct",
-        "lieu_cible": {
-            "latitude": lat_cible,
-            "longitude": lon_cible
-        },
+        "lieu_cible": {"latitude": lat_cible, "longitude": lon_cible},
         "parametres": {
             "frames": frames,
             "interval_seconds": interval_seconds,
@@ -278,5 +279,5 @@ if __name__ == "__main__":
     scenario = generer_scenario_moving_direct_from_coords(
         latitude=45.7640, longitude=4.8357, speed_kmh=40.0, frames=15
     )
-    for i in range (len(scenario["frames"])):
+    for i in range(len(scenario["frames"])):
         print(f"Centre à la frame {i} :", scenario["frames"][i]["centre_theorique"])

@@ -1,14 +1,16 @@
 import json
+from datetime import datetime
+from pathlib import Path
 
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+
 from .management.commands.generer_impacts import *
 from .management.commands.generer_scenario import *
-import json
-from datetime import datetime
-from pathlib import Path
-from django.views.decorators.csrf import csrf_exempt
+from .management.commands.generer_cellule import *
+from .management.commands.crea_json_simulation import *
 
 DOSSIER_SIMULATIONS = Path(__file__).resolve().parent / "simulations"
 DOSSIER_SIMULATIONS.mkdir(exist_ok=True)
@@ -30,6 +32,7 @@ def simulateur_view(request):
     """Vue pour le simulateur"""
     return render(request, "orageApp/simulateur.html")
 
+
 # API
 
 
@@ -42,9 +45,11 @@ def api_generer_10_impacts(request):
     impacts = generer_impacts()
     return JsonResponse({"impacts": impacts})
 
+
 def api_generer_cellule(request):
     cellule = generer_cellule_statique()
     return JsonResponse(cellule)
+
 
 @require_POST
 def api_enregistrer_simulation(request):
@@ -54,7 +59,6 @@ def api_enregistrer_simulation(request):
     except ValueError as erreur:  # JSON illisible ou cellule invalide
         return JsonResponse({"erreur": str(erreur)}, status=400)
     return JsonResponse({"fichier": fichier}, status=201)
-
 
 
 # Simulations
@@ -110,13 +114,25 @@ def api_lister_simulations(request):
         try:
             with open(fichier, "r", encoding="utf-8") as f:
                 data = json.load(f)
+
+                # Récupération flexible de la date et du nombre d'impacts
+                date_str = (
+                    data.get("date_heure")
+                    or data.get("cree_le")
+                    or data.get("debut")
+                    or fichier.stem
+                )
+                nb_impacts = data.get("nb_impacts")
+                if nb_impacts is None and "parametres" in data:
+                    nb_impacts = data["parametres"].get("nb_impacts")
+                if nb_impacts is None:
+                    nb_impacts = len(data.get("impacts", []))
+
                 simulations.append(
                     {
                         "fichier": fichier.name,
-                        "date_heure": data.get("date_heure", fichier.stem),
-                        "nb_impacts": data.get(
-                            "nb_impacts", len(data.get("impacts", []))
-                        ),
+                        "date_heure": str(date_str),
+                        "nb_impacts": nb_impacts,
                     }
                 )
         except Exception:
@@ -145,8 +161,10 @@ def api_generer_scenario(request):
     lon = request.GET.get("lon")
 
     if lat and lon:
-        scenario = generer_scenario_moving_direct_from_coords(latitude=float(lat), longitude=float(lon))
-    else :
+        scenario = generer_scenario_moving_direct_from_coords(
+            latitude=float(lat), longitude=float(lon)
+        )
+    else:
         scenario = generer_scenario_moving_direct_from_coords()
 
     return JsonResponse(scenario)

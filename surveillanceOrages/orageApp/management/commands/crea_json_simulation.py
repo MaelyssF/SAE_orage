@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-DOSSIER_SIMULATIONS = Path("orageApp/simulations")
+DOSSIER_SIMULATIONS = Path(__file__).resolve().parent.parent / "simulations"
 NB_IMPACTS_MAX = 1000
 DUREE_MAX_S = 24 * 3600  # un impact ne peut pas tomber plus de 24 h après le début de la cellule
 
