@@ -6,3 +6,4 @@ omit =
     *__init__.py
     */tests/*
     admin.py
+branch=True

@@ -1,0 +1,49 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main, db]
+  pull_request:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./surveillanceOrages
+    steps:
+      - uses: actions/checkout@v4
+
+
+      - name: Installation des packages
+        run: pip install -r ../requirements.txt
+
+      - name: Lancement du serveur
+        run: python manage.py runserver
+
+      - name: Tester
+        run: coverage run --source="orageApp" manage.py test orageApp/tests
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-results
+          path: ./backend/TestResults
+          if-no-files-found: warn
+
+      - name: Résumé de couverture
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          badge: true
+          filename: ./**/*.cobertura.xml
+          fail_below_min: true
+          thresholds: '43 80'
+          format: markdown
+          output: both
+
+      - name: Ajouter au résumé du run
+        if: always()
+        run: cat ../code-coverage-results.md >> $GITHUB_STEP_SUMMARY
