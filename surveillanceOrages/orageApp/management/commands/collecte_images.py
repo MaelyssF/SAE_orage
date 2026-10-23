@@ -3,20 +3,10 @@ import time
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
-
+from .constantes import * 
 import requests
 
 from orageApp.models import Releve
-
-URL = "https://www.meteociel.fr/obs/foudre/latest.gif"
-OUT_DIR = Path("data/images")
-INTERVAL_S = 300        # 5 min minimum
-MAX_BACKOFF_S = 3600    # Plafond de backoff à 1 heure en cas de panne prolongée
-
-# HEADERS = {
-#     # User-Agent : nom du projet + contact
-#     "User-Agent": "ProjetUniv-SurveillanceOrages/0.1 (contact: asma.hachelef@etu.univ-orleans.fr)"
-# }
 
 
 OUT_DIR.mkdir(exist_ok=True)
@@ -60,6 +50,8 @@ while True:
         # Réinitialisation du backoff en cas de succès
         current_backoff = INTERVAL_S
         time.sleep(INTERVAL_S)
+
+# TODO Faire un intervalle irégulier avec un += random.randint(-30, 30) pour éviter de surcharger le serveur
 
     except requests.RequestException as e:
         print(f"[{datetime.now()}] Erreur réseau ou HTTP : {e}")
