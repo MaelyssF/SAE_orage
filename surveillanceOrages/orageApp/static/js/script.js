@@ -219,7 +219,7 @@ function afficherFrame(index) {
     // Trace le cercle matérialisant la cellule orageuse
     if (frame.centre_theorique) {
         L.circle([frame.centre_theorique.latitude, frame.centre_theorique.longitude], {
-            radius: 4000, // 4 km
+            radius: 30000, // 4 km
             color: "#388bfd",
             fillOpacity: 0.08,
             weight: 1,
