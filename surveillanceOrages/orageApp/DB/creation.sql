@@ -30,7 +30,7 @@ CREATE TABLE
 CREATE TABLE
     SCENARIO_SIMULATION (
         id_scenario INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom VARCHAR(150),
+        nom_scenario VARCHAR(150),
         type_scenario VARCHAR(50) NOT NULL,
         graine_aleatoire INTEGER NOT NULL DEFAULT 42,
         direction_initiale_deg REAL NOT NULL,
