@@ -20,7 +20,7 @@ pip freeze > requirements.txt
 Pour exécuter le fichier manage.py, Il faut se placer dans 'SAE_orage/surveillanceOrages/' .   
 Lancer le serveur :  
 ```Bash
-python manage.py runserver
+python ./manage.py runserver
 ```
 
 Lancer des tests :  

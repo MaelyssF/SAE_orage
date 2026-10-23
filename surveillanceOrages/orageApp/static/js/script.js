@@ -110,7 +110,7 @@ function effacerImpacts() {
         sliderScenario.value = 0;
     }
     if (infoScenario) {
-        infoScenario.textContent = "En attente du lancement d'un orage...";
+        infoScenario.textContent = "En attente du lancement d'un orage…";
     }
     afficherMessage('');
 }
@@ -119,7 +119,7 @@ function effacerImpacts() {
 function afficherImpact(impact) {
     if (!map) return;
     const tempsOffset = (typeof impact.t_s === 'number') ? impact.t_s : 0;
-    
+
     L.circleMarker([impact.latitude, impact.longitude], {
         radius: 3,
         color: "#ff3333",
@@ -525,6 +525,161 @@ if (mapElement) {
                     }
                 })
                 .catch(err => console.error("Erreur chargement simulation :", err));
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // Recherche de commune avec autocomplétion (API Geo gouvernement)
+    // -------------------------------------------------------------------------
+    const inputCommune = document.getElementById('input-commune');
+    const listeCommunes = document.getElementById('liste-communes');
+    const btnImpactCommune = document.getElementById('btn-impact-commune');
+    const infoCommune = document.getElementById('info-commune');
+
+    // Commune actuellement sélectionnée dans la liste
+    let communeSelectionnee = null;
+
+    // Ferme la liste de suggestions si on clique ailleurs
+    document.addEventListener('click', function (e) {
+        if (!inputCommune.contains(e.target) && !listeCommunes.contains(e.target)) {
+            listeCommunes.style.display = 'none';
+        }
+    });
+
+    // Minuteur pour l'anti-rebondx de la recherche
+    let timerRecherche = null;
+
+    if (inputCommune) {
+        inputCommune.addEventListener('input', function () {
+            const terme = this.value.trim();
+            communeSelectionnee = null;
+            if (btnImpactCommune) btnImpactCommune.disabled = true;
+            if (infoCommune) infoCommune.textContent = '';
+
+            // Efface la suggestion précédente
+            listeCommunes.innerHTML = '';
+            listeCommunes.style.display = 'none';
+
+            if (terme.length < 2) return;
+
+            // Attend 300 ms avant de lancer la requête
+            clearTimeout(timerRecherche);
+            timerRecherche = setTimeout(() => {
+                const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(terme)}&fields=nom,centre,codesPostaux&format=json&geometry=centre&limit=8`;
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(communes => {
+                        listeCommunes.innerHTML = '';
+
+                        if (!communes || communes.length === 0) {
+                            listeCommunes.style.display = 'none';
+                            return;
+                        }
+
+                        communes.forEach(commune => {
+                            const lat = commune.centre && commune.centre.coordinates ? commune.centre.coordinates[1] : null;
+                            const lon = commune.centre && commune.centre.coordinates ? commune.centre.coordinates[0] : null;
+                            const cp = (commune.codesPostaux && commune.codesPostaux[0]) || '';
+
+                            if (lat === null || lon === null) return;
+
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item list-group-item-action bg-dark text-light border-secondary py-1 px-2';
+                            li.style.cursor = 'pointer';
+                            li.style.fontSize = '13px';
+                            li.setAttribute('role', 'option');
+                            li.innerHTML = `<span class="fw-semibold">${commune.nom}</span> <span class="text-secondary">${cp}</span>`;
+
+                            li.addEventListener('click', function () {
+                                inputCommune.value = `${commune.nom} (${cp})`;
+                                communeSelectionnee = { nom: commune.nom, latitude: lat, longitude: lon };
+                                listeCommunes.style.display = 'none';
+                                if (btnImpactCommune) btnImpactCommune.disabled = false;
+                                if (infoCommune) infoCommune.textContent = `Lat : ${lat.toFixed(4)}, Lon : ${lon.toFixed(4)}`;
+                            });
+
+                            listeCommunes.appendChild(li);
+                        });
+
+                        listeCommunes.style.display = communes.length > 0 ? 'block' : 'none';
+                    })
+                    .catch(err => {
+                        console.error("Erreur API Geo communes :", err);
+                        listeCommunes.style.display = 'none';
+                    });
+            }, 300);
+        });
+
+        // Navigation clavier dans la liste
+        inputCommune.addEventListener('keydown', function (e) {
+            const items = listeCommunes.querySelectorAll('li');
+            const actif = listeCommunes.querySelector('li.active');
+            let index = Array.from(items).indexOf(actif);
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (actif) actif.classList.remove('active');
+                index = (index + 1) % items.length;
+                items[index].classList.add('active');
+                items[index].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (actif) actif.classList.remove('active');
+                index = (index - 1 + items.length) % items.length;
+                items[index].classList.add('active');
+                items[index].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (actif) actif.click();
+            } else if (e.key === 'Escape') {
+                listeCommunes.style.display = 'none';
+            }
+        });
+    }
+
+    if (btnImpactCommune) {
+        btnImpactCommune.addEventListener('click', function () {
+            if (!communeSelectionnee) return;
+
+            const { nom, latitude, longitude } = communeSelectionnee;
+            const url = `/orageApp/api/generer-scenario/?lat=${latitude}&lon=${longitude}`;
+
+            effacerImpacts();
+            btnImpactCommune.disabled = true;
+            if (infoCommune) infoCommune.textContent = `Calcul du scénario sur ${nom}…`;
+            afficherMessage(`Calcul du scénario sur ${nom}…`);
+
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    scenarioActuel = data;
+
+                    if (sliderScenario) {
+                        sliderScenario.disabled = false;
+                        sliderScenario.max = data.frames.length - 1;
+                        sliderScenario.value = 0;
+                    }
+
+                    if (btnEnregistrer) btnEnregistrer.disabled = false;
+
+                    const nbEtapes = data.frames.length;
+                    afficherMessage(`Scénario sur ${nom} prêt : ${nbEtapes} étapes.`);
+                    if (infoCommune) infoCommune.textContent = `⚡ Orage lancé depuis ${nom} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+
+                    afficherFrame(0);
+                    lancerLecture();
+                    btnImpactCommune.disabled = false;
+                })
+                .catch(err => {
+                    console.error("Erreur scénario commune :", err);
+                    afficherMessage(`Erreur : ${err.message}`);
+                    if (infoCommune) infoCommune.textContent = `Erreur : ${err.message}`;
+                    btnImpactCommune.disabled = false;
+                });
         });
     }
 }

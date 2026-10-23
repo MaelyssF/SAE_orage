@@ -11,6 +11,7 @@ urlpatterns = [
     # API endpoints
 
     path('api/generer-impact/', api_generer_impact, name='api_generer_impact'),
+    path('api/generer-impact-precis/', api_generer_impact_precis, name='api_generer_impact_precis'),
     path('api/generer-10-impacts/', api_generer_10_impacts, name='api_generer_10_impacts'),
     path('api/lister-simulations/', api_lister_simulations, name='api_lister_simulations'),
     path('api/charger-simulation/<str:nom_fichier>/', api_charger_simulation, name='api_charger_simulation'),

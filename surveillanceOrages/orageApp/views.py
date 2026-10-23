@@ -41,6 +41,23 @@ def api_generer_impact(request):
     return JsonResponse(impact)
 
 
+def api_generer_impact_precis(request):
+    """Génère un impact aux coordonnées exactes transmises en paramètre GET"""
+    try:
+        lat = float(request.GET.get("lat"))
+        lon = float(request.GET.get("lon"))
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Paramètres lat et lon requis et numériques.",
+            },
+            status=400,
+        )
+    impact = generer_impact_precis(lat, lon)
+    return JsonResponse(impact)
+
+
 def api_generer_10_impacts(request):
     impacts = generer_impacts()
     return JsonResponse({"impacts": impacts})
@@ -116,15 +133,38 @@ def api_charger_simulation(request, nom_fichier):
 
 
 def api_generer_scenario(request):
-    """Vue API pour générer un scénario d'impacts aléatoires en France"""
-    lat = request.GET.get("lat")
-    lon = request.GET.get("lon")
+    """Vue API pour générer un scénario d'orage mobile en France"""
+    lat = float(request.GET.get("lat"))
+    lon = float(request.GET.get("lon"))
+    speed_kmh = float(request.GET.get("speed_kmh", 40.0))
+    frames = int(request.GET.get("frames", 60))
+    spread_km = float(request.GET.get("spread_km", 30.0))
+    interval_seconds = int(request.GET.get("interval_seconds", 500))
 
-    if lat and lon:
+    if lat is not None and lon is not None and speed_kmh is not None and frames is not None and spread_km is not None and interval_seconds is not None:
+        try:
+            lat = lat
+            lon = lon
+            speed_kmh = speed_kmh
+            frames = frames
+            spread_km = spread_km
+            interval_seconds = interval_seconds
+        except ValueError:
+            return JsonResponse(
+                {"error": "Paramètres lat et lon invalides."}, status=400
+            )
+
         scenario = generer_scenario_moving_direct_from_coords(
-            latitude=float(lat), longitude=float(lon), speed_kmh=40.0, start_distance_km=150.0, frames=50, spread_km=30.0
+            latitude=lat,
+            longitude=lon,
+            speed_kmh=speed_kmh,
+            frames=frames,
+            spread_km=spread_km,
+            interval_seconds=interval_seconds,
         )
     else:
-        scenario = generer_scenario_moving_direct_from_coords(spread_km=30.0, speed_kmh=70.0, interval_seconds=500, frames=60)
+        scenario = generer_scenario_moving_direct_from_coords(
+            spread_km=30.0, speed_kmh=70.0, interval_seconds=500, frames=60
+        )
 
     return JsonResponse(scenario)
