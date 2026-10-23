@@ -24,6 +24,19 @@ let numeroGeneration = 0;       // Identifiant de génération pour ignorer les 
 let scenarioActuel = null;      // Données du scénario mobile en cours
 let timerAnimation = null;      // Minuteur pour le défilement automatique du scénario
 
+const couleursImpactsParAge = [
+    "#f705fa", // 0 min : rose
+    "#ff0000", // 15 min : rouge
+    "#ff8000", // 30 min : orange
+    "#ffff00", // 45 min : jaune
+    "#00ff00", // 60 min : vert
+    "#00ffff", // 75 min : cyan
+    "#0080ff", // 90 min : bleu
+    "#0000ff"  // 105 min : bleu marine
+];
+const dureeVieImpactSecondes = 2 * 60 * 60;
+const intervalleCouleurSecondes = 15 * 60;
+
 // =============================================================================
 // FONCTIONS UTILITAIRES
 // =============================================================================
@@ -118,6 +131,24 @@ function afficherImpact(impact) {
     );
 }
 
+function obtenirTempsFrame(frame, index) {
+    if (Number.isFinite(frame.temps_secondes)) {
+        return frame.temps_secondes;
+    }
+
+    const intervalle = scenarioActuel.parametres?.interval_seconds;
+    return index * (Number.isFinite(intervalle) ? intervalle : 0);
+}
+
+function obtenirCouleurImpact(ageSecondes) {
+    if (ageSecondes < 0 || ageSecondes >= dureeVieImpactSecondes) {
+        return null;
+    }
+
+    const indexCouleur = Math.floor(ageSecondes / intervalleCouleurSecondes);
+    return couleursImpactsParAge[indexCouleur];
+}
+
 // Affiche progressivement les impacts d'une cellule statique
 function jouerCellule(cellule) {
     if (!map) return;
@@ -167,15 +198,22 @@ function afficherFrame(index) {
     const frame = scenarioActuel.frames[index];
     const traj = scenarioActuel.trajectoire || {};
 
-    // Trace les impacts de cette frame
-    frame.impacts.forEach(imp => {
-        L.circleMarker([imp.latitude, imp.longitude], {
-            radius: 3,
-            color: "#ff3333",
-            fillColor: "#ff0000",
-            fillOpacity: 0.95,
-            weight: 1
-        }).addTo(map);
+    // Affiche les impacts récents et leurs traces en fonction de leur ancienneté
+    const tempsCourant = obtenirTempsFrame(frame, index);
+    scenarioActuel.frames.slice(0, index + 1).forEach((frameImpact, indexFrameImpact) => {
+        const ageFrame = tempsCourant - obtenirTempsFrame(frameImpact, indexFrameImpact);
+        const couleur = obtenirCouleurImpact(ageFrame);
+        if (!couleur) return;
+
+        frameImpact.impacts.forEach(imp => {
+            L.circleMarker([imp.latitude, imp.longitude], {
+                radius: 3,
+                color: couleur,
+                fillColor: couleur,
+                fillOpacity: 0.95,
+                weight: 1
+            }).addTo(map);
+        });
     });
 
     // Trace le cercle matérialisant la cellule orageuse
